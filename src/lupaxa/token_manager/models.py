@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import dataclasses
 import datetime as dt
+import json
 from pathlib import Path
 from typing import Any
 
@@ -62,13 +63,20 @@ class ProfileConfig:
         """Load ``config.json``, defaulting to plaintext when it is missing."""
         from lupaxa.token_manager.io import read_json
 
-        data = read_json(profile_dir / CONFIG_FILE)
-        if not data:
+        try:
+            data = read_json(profile_dir / CONFIG_FILE)
+        except json.JSONDecodeError as exc:
+            raise TokenManagerError("config.json is not valid JSON. Refusing to continue.") from exc
+        if data is None:
             return ProfileConfig()
-        encryption = (data.get("encryption") or "none").lower()
-        if encryption not in VALID_ENCRYPTION:
-            encryption = "none"
-        return ProfileConfig(encryption=encryption)
+        if not isinstance(data, dict):
+            raise TokenManagerError("config.json is not an object. Refusing to continue.")
+        encryption = data.get("encryption", "none")
+        if not isinstance(encryption, str) or encryption.lower() not in VALID_ENCRYPTION:
+            raise TokenManagerError(
+                f"config.json has unknown encryption mode {encryption!r}. Refusing to continue."
+            )
+        return ProfileConfig(encryption=encryption.lower())
 
     def save(self, profile_dir: Path) -> None:
         """Write ``config.json``."""

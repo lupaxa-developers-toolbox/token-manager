@@ -54,25 +54,47 @@ tokenctl set --type github --name main --format dotenv
 tokenctl set --type github --name main --format value
 ```
 
-`export` is the default. Values are single-quoted for the shell.
+`export` is the default. `export` and `dotenv` both single-quote the value.
+The variable name must be a shell identifier. Those formats, JSON, and
+name lists are never coloured. On a terminal, success lines are green,
+errors are red, a plaintext profile label is yellow, and dry-run text is
+cyan. `tokenctl help` and `tokenctl help list` colour command and option
+names the same way. `NO_COLOR` turns colour off.
 
 ## Profiles
 
 ```bash
+tokenctl profile list
 tokenctl profile init
+tokenctl profile update
 tokenctl --profile ci profile init --encryption openssl
 tokenctl --profile ci profile show
 tokenctl --profile ci profile set-encryption gpg
 ```
 
-`set-encryption` rewrites the tokens in the new mode and removes the
-previous token file, so a switch to encryption does not leave plaintext
-behind.
+`profile list` prints every profile directory. The columns are name,
+whether it is initialised, and encryption. A directory with no config and
+no token file is listed as not initialised, with a blank encryption. Do
+not pass `--profile` to it. `--format names` prints the names
+only. `profile init` creates a profile. A directory that already has a
+token file and no `config.json` is still a profile: encryption is taken
+from that file. Commands do not create a directory for a name that has
+neither. If that profile already has a config or token file, init stops
+and leaves it unchanged. `profile update` writes `config.json` for a
+legacy profile and does not rewrite its token file. `set-encryption`
+writes and checks the new token file before it updates `config.json`,
+then removes the previous file. Changing between `gpg` and
+`openssl` asks for the current passphrase and the new one. If that write
+fails, the existing profile is left as it is.
 
 For `gpg` and `openssl`, set `TOKENCTL_PASSPHRASE` or type the passphrase
-at the prompt. A non-interactive shell must set the variable. A prompted
-passphrase is given to the encryption tool on a separate pipe and is not
-stored in the environment.
+at the prompt. A migrate asks once when one profile is encrypted, and
+twice when both are. `TOKENCTL_PASSPHRASE` is used only when one
+passphrase is required. A migrate between two encrypted profiles ignores
+it and asks for each passphrase on a terminal. A prompted passphrase is
+given to the encryption tool on a separate pipe and is not stored in the
+environment. OpenSSL files use PBKDF2. `update --env-var ''` clears a
+stored variable name.
 
 ## Migrate
 
@@ -83,8 +105,15 @@ tokenctl migrate --from-profile default --to-profile ci --type github --name mai
 tokenctl migrate --from-profile default --to-profile ci --overwrite
 ```
 
-`--dry-run` prints the migration and does not write either profile.
-Without `--move`, the source profile is left as it is. `--overwrite`
-replaces a destination token that already uses the same type and name.
-A name conflict is still an error when `--overwrite` is absent, including
-during a dry run.
+`--dry-run` prints the migration and does not write either profile. It
+still reads both profiles, so an encrypted profile asks for its
+passphrase. The destination must already exist. Without `--move`, the
+source profile is left as it is. `--move` changes
+the source only after the destination reads back every migrated token.
+`--overwrite` replaces a destination token that already uses the same
+type and name, or the same id with different contents. A conflict is
+still an error when `--overwrite` is absent, including during a dry run.
+Copying the same token again is allowed when the destination copy is
+unchanged. A migrate asks once when one profile is encrypted, and twice
+when both are. `TOKENCTL_PASSPHRASE` is used only when one passphrase is
+required.
