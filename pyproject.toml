@@ -1,0 +1,99 @@
+[build-system]
+requires = ["hatchling>=1.18"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lupaxa-token-manager"
+dynamic = ["version"]
+description = "Store API tokens in named profiles, with optional encryption, and emit them as shell exports."
+readme = "README.md"
+license = { file = "LICENCE" }
+requires-python = ">=3.10"
+
+authors = [
+  { name = "The Lupaxa Project" }
+]
+
+keywords = ["tokens", "credentials", "cli", "profiles", "encryption"]
+
+dependencies = []
+
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Security",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Utilities",
+]
+
+[project.urls]
+Homepage = "https://token-manager.thelupaxaproject.org/"
+Documentation = "https://token-manager.thelupaxaproject.org/"
+Repository = "https://github.com/lupaxa-developers-toolbox/token-manager"
+Issues = "https://github.com/lupaxa-developers-toolbox/token-manager/issues"
+
+[project.scripts]
+tokenctl = "lupaxa.token_manager.cli:main"
+token-manager = "lupaxa.token_manager.cli:main"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "pytest-cov>=5.0",
+  "ruff>=0.6.0",
+  "mypy>=1.12.0",
+  "hatch>=1.12.0",
+  "bump-my-version>=1.2.0",
+  "mkdocs==1.6.1",
+  "mkdocs-material==9.7.7",
+]
+test = [
+  "pytest>=8.0",
+  "pytest-cov>=5.0",
+]
+
+[tool.hatch.version]
+path = "src/lupaxa/token_manager/version.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "src/**",
+  "README.md",
+  "LICENCE",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/lupaxa"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.10"
+files = ["src", "tests"]
+mypy_path = "src"
+explicit_package_bases = true
+namespace_packages = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+addopts = "-ra -q --disable-warnings"
+testpaths = ["tests"]
+pythonpath = ["src"]
