@@ -52,7 +52,9 @@ profiles/<profile>/tokens.json
 
 `config.json` records the encryption mode: `none`, `gpg`, or `openssl`.
 Encrypted profiles use `tokens.json.gpg` or `tokens.json.enc` instead of
-plaintext `tokens.json`.
+plaintext `tokens.json`. A directory that already has a token file and no
+`config.json` is a legacy profile. `tokenctl profile update` writes
+`config.json` from that file and does not rewrite the tokens.
 
 ## Use a Token in the Current Shell
 

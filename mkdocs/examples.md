@@ -47,7 +47,10 @@ tokenctl migrate \
   --dry-run
 ```
 
-Drop `--dry-run` when the preview is the move you want.
+Drop `--dry-run` when the preview is the move you want. Each migrated
+token is stored with the destination profile's encryption. A plaintext
+destination stores plaintext. A `gpg` or `openssl` destination stores
+that mode.
 
 ## Helper Function
 

@@ -24,9 +24,10 @@ source <(tokenctl set --type github --name main --format export)
 - Named profiles under `$XDG_CONFIG_HOME/tokenctl/profiles/`
 - Names that are unique within a token type
 - Optional `gpg` or `openssl` encryption per profile
-- `list`, `show`, `add`, `update`, and `delete`
+- `list`, `types`, `show`, `add`, `update`, `delete`, and `set`
+- `profile list`, `profile init`, `profile update`, `profile show`, and `profile set-encryption`
 - Shell output as `export`, dotenv, or the raw value
 - Secrets read from a prompt or from stdin
-- Copy or move tokens between profiles, with a dry run
+- Copy or move tokens between profiles, stored with the destination profile's encryption, with a dry run
 
 `tokenctl` and `token-manager` are the same console script.

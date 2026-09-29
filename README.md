@@ -36,9 +36,9 @@ A child process cannot change the parent shell, so source the `export`
 line. Status text is coloured on a terminal: green for success, red for
 errors, yellow for a plaintext profile, and cyan for information.
 `tokenctl help` and `tokenctl help list` colour the command and option
-names. `export`,
-`dotenv`, `value`, JSON, and name lists stay plain so they can be sourced
-or parsed. Set `NO_COLOR` to turn colour off. `--profile` goes before the
+names. `export`, `dotenv`, `value`, JSON, and name lists stay plain so they can be
+sourced or parsed. Set `NO_COLOR` to turn colour off. `CLICOLOR_FORCE`
+turns colour on when the stream is a pipe. `--profile` goes before the
 subcommand and defaults to `default`:
 
 ```bash
@@ -101,7 +101,8 @@ tokenctl delete --type pypi --name publish
 Omit `--value` on `add` and the tool prompts without echoing. `--value -`
 reads the secret from stdin, which keeps it out of shell history and the
 process list. On `update`, omit `--value` to leave the secret unchanged,
-or pass `--value -` to replace it from stdin.
+or pass `--value -` to replace it from stdin. `update --env-var ''` clears
+a stored variable name.
 
 ### Set
 
@@ -128,16 +129,21 @@ tokenctl --profile ci profile set-encryption gpg
 `profile list` prints every profile directory. The columns are name,
 whether it is initialised, and encryption. A directory with no config and
 no token file is listed as not initialised, with a blank encryption. Do
-not pass `--profile` to it. `--format names` prints the names
-only. `profile init` creates a profile. A profile is also available when
-it already has a token file and no `config.json`: that is a legacy
-profile, and its encryption is taken from the file. Commands do not create
-a directory for a name that has neither. A second init stops and leaves an
-existing profile unchanged. `profile update` writes `config.json` for a
-legacy profile and does not rewrite its token file. `set-encryption`
-writes and checks the new token file before it updates `config.json`,
-then removes the previous file. If that write fails, the existing profile
-is left as it is.
+not pass `--profile` to it. `--format names` prints one name per line.
+`--format json` prints `profile`, `initialised`, and `encryption`.
+`profile init` creates a profile. A profile is also available when it
+already has a token file and no `config.json`: that is a legacy profile.
+Commands do not create a directory for a name that has neither. A second
+init stops and leaves an existing profile unchanged. `profile update`
+writes `config.json` for a legacy profile and does not rewrite its token
+file. `tokens.json` is recorded as `none`, `tokens.json.gpg` as `gpg`, and
+`tokens.json.enc` as `openssl`. A profile that already has `config.json`
+is left as it is. If more than one token file is present and
+`config.json` is missing, the command stops rather than guessing a mode.
+`set-encryption` writes and checks the new token file before it updates
+`config.json`, then removes the previous file. Changing between `gpg` and
+`openssl` asks for the current passphrase and the new one. If that write
+fails, the existing profile is left as it is.
 
 ### Migrate
 
@@ -148,17 +154,17 @@ tokenctl migrate --from-profile default --to-profile ci --type github --name pro
 
 `--dry-run` prints the change and writes nothing. It still reads both
 profiles, so an encrypted profile asks for its passphrase. The destination
-must already exist. Without `--move`, the source profile is left as it is.
-`--move` changes the source only after
-the destination reads back every migrated token. `--overwrite` replaces a destination token that already uses the same
-type and name, or the same id with different contents. A conflict without
-`--overwrite` is still an error during a dry run. Copying the same token
-again is allowed when the destination copy is unchanged. A migrate asks
-once when one profile is encrypted, and twice when both are.
-`TOKENCTL_PASSPHRASE` is used only when one passphrase is required.
-Changing a profile between `gpg` and `openssl` asks for the current
-passphrase and the new one. `update --env-var ''` clears a stored
-variable name.
+must already exist. Each migrated token is stored with the destination
+profile's encryption. A plaintext destination stores plaintext. A `gpg` or
+`openssl` destination stores that mode. Without `--move`, the source
+profile is left as it is. `--move` changes the source only after the
+destination reads back every migrated token. `--overwrite` replaces a
+destination token that already uses the same type and name, or the same id
+with different contents. A conflict without `--overwrite` is still an
+error during a dry run. Copying the same token again is allowed when the
+destination copy is unchanged. A migrate asks once when one profile is
+encrypted, and twice when both are. `TOKENCTL_PASSPHRASE` is used only
+when one passphrase is required.
 
 ## Storage and Encryption
 

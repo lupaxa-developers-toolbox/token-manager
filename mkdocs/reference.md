@@ -26,25 +26,33 @@ JSON. Without it, both hide `value`.
 
 `add` prompts for the secret when `--value` is omitted. `--value -` on
 `add` or `update` reads the secret from stdin. An empty secret is a
-usage error.
+usage error. `update --env-var ''` clears a stored variable name.
 
 `migrate --dry-run` reports the copy or move and leaves both profiles
 unchanged. It still reads both profiles, so an encrypted profile asks for
-its passphrase. Both profiles must already exist. `migrate --move` updates
-the source only after the destination reads back every migrated token,
-including its env var. `--overwrite` is required when the destination
-already has the same type and name, or the same id with different contents.
+its passphrase. Both profiles must already exist. Each migrated token is
+stored with the destination profile's encryption. A plaintext destination
+stores plaintext. A `gpg` or `openssl` destination stores that mode.
+`migrate --move` updates the source only after the destination reads back
+every migrated token, including its env var. `--overwrite` is required
+when the destination already has the same type and name, or the same id
+with different contents.
 
 `profile init` refuses to run again once the profile has a config or a
-token file. A token file without `config.json` is still a profile. `profile update`
-writes that config and does not rewrite the token file.
+token file. A token file without `config.json` is still a profile.
+`profile update` writes that config and does not rewrite the token file.
+`tokens.json` is recorded as `none`, `tokens.json.gpg` as `gpg`, and
+`tokens.json.enc` as `openssl`. A profile that already has `config.json`
+is left as it is. If more than one token file is present and
+`config.json` is missing, the command stops rather than guessing a mode.
 `profile list` shows every profile directory, with an Initialised column
-between the name and the encryption. `--profile` is not accepted there.
-Other commands refuse a name that has neither a config nor a token file.
-`profile set-encryption` switches mode only after the new token file has
-been written and read back. Changing between `gpg` and `openssl` asks for
-the current passphrase and the new one. `update --env-var ''` clears a
-stored variable name.
+between the name and the encryption. `--format names` prints one name per
+line. `--format json` prints `profile`, `initialised`, and `encryption`.
+`--profile` is not accepted there. Other commands refuse a name that has
+neither a config nor a token file. `profile set-encryption` switches mode
+only after the new token file has been written and read back. Changing
+between `gpg` and `openssl` asks for the current passphrase and the new
+one.
 
 ## Token Fields
 
